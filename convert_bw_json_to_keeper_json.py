@@ -114,9 +114,14 @@ def bw_item_to_keeper_record(item: Dict[str, Any], id_to_name: Dict[str, str]) -
     custom_fields = map_custom_fields(item.get("fields"))
 
     # TOTP -> $oneTimeCode otpauth
-    totp_secret = (login_obj.get("totp") or "").strip()
-    if totp_secret:
-        custom_fields["$oneTimeCode::1"] = build_totp_otpauth(totp_secret, title, login, login_url)
+    totp_value = (login_obj.get("totp") or "").strip()
+    if totp_value:
+        # Check if it's already a complete otpauth:// URL
+        if totp_value.startswith("otpauth://"):
+            custom_fields["$oneTimeCode::1"] = totp_value
+        else:
+            # It's just a secret, build the otpauth URL
+            custom_fields["$oneTimeCode::1"] = build_totp_otpauth(totp_value, title, login, login_url)
 
     # Map folders
     folders: List[Dict[str, str]] = []
